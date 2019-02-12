@@ -1,0 +1,19 @@
+{
+  "restartable": "rs",
+  "ignore": [
+    ".git",
+    "node_modules/**/node_modules"
+  ],
+  "verbose": true,
+  "execMap": {
+    "js": "babel-node -- app/index.js --presets env,stage-2",
+    "ejs": "babel-node -- app/index.js --presets env,stage-2"
+  },
+  "watch": [
+    "app"
+  ],
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "ext": "js ejs"
+}

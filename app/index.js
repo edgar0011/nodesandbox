@@ -1,33 +1,24 @@
 import express from 'express'
 import puppeteer from 'puppeteer'
+import path from 'path'
 
-/*(async () => {
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()
-  console.log(page)
-  await page.goto('https://news.ycombinator.com', { waitUntil: 'networkidle2' })
-  const pdf = await page.pdf({ path: 'hn.pdf', format: 'A4' })
-  console.log(pdf)
+import fs from 'fs'
 
-  await browser.close()
-})()*/
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
 
 const obtainFavIcon = async (url) => {
-  console.log(puppeteer)
-  const browser = await puppeteer.launch();
+  console.log('obtainFavIcon started', Date.now(), url)
+  const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-  // console.log(page)
-  await page.goto(url || 'https://www.facebook.com');
-
-  console.log('page')
-  console.log(page)
+  await page.goto(url, {waitUntil: 'load', timeout: 0});
 
   let favIcon = await page.evaluate(() => {
-    // const iconNode = document.querySelector('link[rel="shortcut icon"]')
     const iconNode = document.querySelector('link[rel*="icon"]');
     let icon = iconNode ? iconNode.getAttribute('href') : null
-    console.log('icon')
-    console.log(icon)
     return icon
   });
 
@@ -37,38 +28,81 @@ const obtainFavIcon = async (url) => {
     } else {
       favIcon = `${url}${favIcon}`
     }
+  } else {
+    // last resort, no head tag but just .../favicon.ico
+    favIcon = `${url}/favicon.ico`
   }
 
-  console.log('favIcon:', favIcon)
-  // const image = await page.screenshot({ path: 'example.png' });
-  // console.log(image)
-
   await browser.close();
+  console.log('obtainFavIcon ended', Date.now())
   return favIcon
 }
 
+const parseIconsResults = async (urls) => {
+  // const icons = urls.map(url => obtainFavIcon(url))
+  // const resolvedIcons = await Promise.all(icons)
+
+  const resolvedIcons = await urls.reduce(async (promise, url) => {
+    return promise.then(iconResults => {
+      return obtainFavIcon(url).then(icon => [...iconResults, icon])
+    })
+  }, Promise.resolve([]))
+
+  console.log('resolvedIcons')
+  console.log(resolvedIcons)
+  return {
+    urls,
+    icons: resolvedIcons
+  }
+}
+
+parseIconsResults.DEFAULT_URL = 'https://www.facebook.com'
+
+const readUrlsFromFile = () => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path.join(__dirname, './data/urls2') , 'utf8', (error, data) => {
+      if (error) {
+        return reject(error);
+      }
+      const fileContent = data.split('\n')
+      return resolve(fileContent )
+    })
+  })
+}
 
 const PORT = 8080;
 const app = express();
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
+app.get('/urls', async (req, res) => {
+
+  let urls
+  if (!req.query.url && !req.query.urls) {
+    urls = await readUrlsFromFile()
+    console.log(urls)
+  } else {
+    urls = !req.query.urls ? [req.query.url || parseIconsResults.DEFAULT_URL] : req.query.urls.split(',')
+  }
+  res.render('urls', await parseIconsResults(urls))
+});
 
 app.get('/api/favIcon', async (req, res) => {
-  console.log(req.query)
-  if (req.query.url) {
-    const icon = await obtainFavIcon(req.query.url)
-    res.json({ result: icon });
+
+  let urls
+  if (!req.query.url && !req.query.urls) {
+    urls = await readUrlsFromFile()
+    console.log(urls)
+  } else {
+    urls = !req.query.urls ? [req.query.url || parseIconsResults.DEFAULT_URL] : req.query.urls.split(',')
   }
-  if (req.query.urls) {
-    const icons = req.query.urls.split(',').map(url => obtainFavIcon(url))
-    res.json({ result: await Promise.all(icons) });
-  }
+
+  res.status(202).send(await parseIconsResults(urls))
 });
 
 app.get(['/hello', '*'], (req, res) => {
   res.json({ result: 'Hi there...' });
 });
-
-
 
 app.listen(PORT, () => {
   console.log('app running at 8080');
