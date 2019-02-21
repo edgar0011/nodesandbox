@@ -1,7 +1,8 @@
 import express from 'express'
 import puppeteer from 'puppeteer'
 import path from 'path'
-
+import bodyParser from 'body-parser'
+import user from './api/routes/user'
 import fs from 'fs'
 
 async function asyncForEach(array, callback) {
@@ -74,7 +75,7 @@ const PORT = 8080;
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
+app.use(bodyParser.json())
 app.get('/urls', async (req, res) => {
 
   let urls
@@ -99,6 +100,9 @@ app.get('/api/favIcon', async (req, res) => {
 
   res.status(202).send(await parseIconsResults(urls))
 });
+
+app.use('/user', user)
+
 
 app.get(['/hello', '*'], (req, res) => {
   res.json({ result: 'Hi there...' });
