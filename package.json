@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "babel-node app/index.js --presets env,stage-2",
-    "startDev": "nodemon",
+    "startDev": "NODE_ENV=development nodemon $NODE_DEBUG_OPTION",
     "startSBDev": "nodemon --exec babel-node -- app/sb.js --presets env,stage-2",
     "lint": "eslint ./ --cache --ignore-pattern .gitignore",
     "precommit": "npm run lint"

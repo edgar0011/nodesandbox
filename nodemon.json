@@ -6,8 +6,8 @@
   ],
   "verbose": true,
   "execMap": {
-    "js": "babel-node -- app/index.js --presets env,stage-2",
-    "ejs": "babel-node -- app/index.js --presets env,stage-2"
+    "js": "babel-node -- $NODE_DEBUG_OPTION app/index.js --presets env,stage-2",
+    "ejs": "babel-node -- $NODE_DEBUG_OPTION app/index.js --presets env,stage-2"
   },
   "watch": [
     "app"

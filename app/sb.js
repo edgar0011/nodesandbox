@@ -15,7 +15,12 @@ let results = [];
 let result;
 const run = async () => {
   results = [1, 2, 3].map(num => waitFor(50, num));
+
+  const raceForResult = await Promise.race(results)
+  console.log('raceForResult: ', raceForResult)
+
   result = await Promise.all(results)
+  console.log('result: ', result)
 }
 
 run().then(() => {

@@ -2,20 +2,20 @@ import express from 'express'
 import puppeteer from 'puppeteer'
 import path from 'path'
 import bodyParser from 'body-parser'
-import user from './api/routes/user'
 import fs from 'fs'
+import URL from 'url'
 
-async function asyncForEach(array, callback) {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
-  }
-}
+import user from './api/routes/user'
 
 const obtainFavIcon = async (url) => {
   console.log('obtainFavIcon started', Date.now(), url)
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-  await page.goto(url, {waitUntil: 'load', timeout: 0});
+  const redirected = await page.goto(url, { waitUntil: 'load', timeout: 0 });
+
+  if (redirected.headers().status !== '200') {
+    return null;
+  }
 
   let favIcon = await page.evaluate(() => {
     const iconNode = document.querySelector('link[rel*="icon"]');
@@ -23,19 +23,24 @@ const obtainFavIcon = async (url) => {
     return icon
   });
 
-  if (favIcon && favIcon.indexOf('http') === -1) {
-    if (favIcon.indexOf('//') === 0) {
-      favIcon = `http:${favIcon}`
-    } else {
-      favIcon = `${url}${favIcon}`
+  const myURL = URL.parse(url);
+
+  if (favIcon) {
+    if (favIcon.indexOf('http') === -1) {
+      if (favIcon.indexOf('//') === 0) {
+        favIcon = `http:${favIcon}`
+      } else {
+        favIcon = `${myURL.protocol}//${myURL.host}${favIcon}`
+      }
     }
   } else {
     // last resort, no head tag but just .../favicon.ico
-    favIcon = `${url}/favicon.ico`
+    favIcon = `${myURL.protocol}//${myURL.host}/favicon.ico`
   }
 
   await browser.close();
   console.log('obtainFavIcon ended', Date.now())
+  console.log('obtainFavIcon favIcon', favIcon)
   return favIcon
 }
 
@@ -43,17 +48,19 @@ const parseIconsResults = async (urls) => {
   // const icons = urls.map(url => obtainFavIcon(url))
   // const resolvedIcons = await Promise.all(icons)
 
-  const resolvedIcons = await urls.reduce(async (promise, url) => {
+  let resolvedIcons = await urls.reduce(async (promise, url) => {
     return promise.then(iconResults => {
-      return obtainFavIcon(url).then(icon => [...iconResults, icon])
+      return obtainFavIcon(url).then(icon => [...iconResults, icon ? { url, icon } : null])
     })
   }, Promise.resolve([]))
+
+  resolvedIcons = resolvedIcons.filter(icon => !!icon)
 
   console.log('resolvedIcons')
   console.log(resolvedIcons)
   return {
-    urls,
-    icons: resolvedIcons
+    urls: resolvedIcons.map(({ url }) => url),
+    icons: resolvedIcons.map(({ icon }) => icon)
   }
 }
 
@@ -65,8 +72,8 @@ const readUrlsFromFile = () => {
       if (error) {
         return reject(error);
       }
-      const fileContent = data.split('\n')
-      return resolve(fileContent )
+      const fileContent = data.split('\n').filter(url => !!url)
+      return resolve(fileContent)
     })
   })
 }
@@ -81,7 +88,6 @@ app.get('/urls', async (req, res) => {
   let urls
   if (!req.query.url && !req.query.urls) {
     urls = await readUrlsFromFile()
-    console.log(urls)
   } else {
     urls = !req.query.urls ? [req.query.url || parseIconsResults.DEFAULT_URL] : req.query.urls.split(',')
   }
@@ -93,7 +99,6 @@ app.get('/api/favIcon', async (req, res) => {
   let urls
   if (!req.query.url && !req.query.urls) {
     urls = await readUrlsFromFile()
-    console.log(urls)
   } else {
     urls = !req.query.urls ? [req.query.url || parseIconsResults.DEFAULT_URL] : req.query.urls.split(',')
   }
@@ -102,6 +107,18 @@ app.get('/api/favIcon', async (req, res) => {
 });
 
 app.use('/user', user)
+
+app.use('/cms', (req, res, next) => {
+  console.log(req)
+  console.log(res)
+  next()
+},(req, res) => {
+  console.log(req)
+  console.log(res)
+  //next()
+  //res.json({ result: 'CMS not here...' });
+  res.redirect('http://www.google.com')
+})
 
 
 app.get(['/hello', '*'], (req, res) => {
