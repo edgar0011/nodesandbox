@@ -1,19 +1,21 @@
 {
   "presets": [
-    ["env"],
-    "stage-2"
+    ["@babel/preset-env", {
+      "modules": false
+    }],
   ],
   "plugins": [
-    "transform-class-properties",
-    "transform-decorators-legacy",
-    "transform-object-assign",
-    "add-module-exports"
+    "@babel/plugin-proposal-export-default-from",
+    "@babel/transform-modules-commonjs",
+    "@babel/plugin-syntax-dynamic-import",
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+    ["@babel/plugin-proposal-class-properties", { "loose" : true }],
+    "@babel/plugin-proposal-export-namespace-from"
   ],
   "env": {
     "test": {
       "presets": [
-        "env",
-        "stage-2"
+        "@babel/preset-env"
       ]
     }
   }
