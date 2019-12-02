@@ -2,6 +2,8 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 
+// import { spawn } from 'child_process'
+
 const PORT = 8080
 const app = express()
 
@@ -16,14 +18,61 @@ app.use((req, res, next) => {
   next()
 })
 
-app.get('/', (req, res) => {
-  res.json({ result: 'ok' })
-})
-
 app.get(['/hello', '/hey'], (req, res) => {
   res.json({ result: 'Hi there...' })
+})
+
+app.get('/error', (request, response, next) => {
+  // console.log('pre simulationg Error')
+  // console.log('Request:')
+  // console.log(request)
+  // console.log('Response:')
+  // console.log(response)
+  next()
+}, () => {
+  setImmediate(() => {
+    throw new Error('Simulating Error')
+  })
+})
+
+app.get('/*', (req, res) => {
+  res.json({ result: 'ok' })
 })
 
 app.listen(PORT, () => {
   console.log('app running at 8080')
 })
+
+process.on('uncaughtException', function(err) {
+  console.log('Uncaught Exception')
+  console.error(err)
+})
+
+// process
+//   .on('unhandledRejection', (reason, promise) => {
+//     console.log('unhandledRejection')
+//     console.error(reason, 'Unhandled Rejection at Promise', promise)
+//   })
+//   .on('uncaughtException', err => {
+//     console.log('uncaughtException')
+//     console.error(err, 'Uncaught Exception thrown')
+//     process.exit(1)
+//   })
+
+// (function main() {
+//   if (process.env.process_restarting) {
+//     delete process.env.process_restarting
+//     // Give old process one second to shut down before continuing ...
+//     setTimeout(main, 1000)
+//     return
+//   }
+
+//   // ...
+
+//   // Restart process ...
+//   spawn(process.argv[0], process.argv.slice(1), {
+//     // eslint-disable-next-line @typescript-eslint/camelcase
+//     env: { process_restarting: 1 },
+//     stdio: 'ignore',
+//   }).unref()
+// })()

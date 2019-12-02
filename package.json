@@ -7,6 +7,7 @@
     "start": "babel-node src/server.js --presets @babel/preset-env",
     "start:dev": "NODE_ENV=development nodemon --exec babel-node -- $NODE_DEBUG_OPTION src/server.js --presets @babel/preset-env",
     "start:favicon:dev": "NODE_ENV=development nodemon --exec babel-node -- $NODE_DEBUG_OPTION src/faviconApp/index.js --presets @babel/preset-env",
+    "batchFill": "babel-node src/scripting/batchFill.js --presets @babel/preset-env",
     "lint": "eslint ./ --cache --ignore-pattern .gitignore",
     "precommit": "yarn lint"
   },
@@ -15,11 +16,10 @@
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "puppeteer": "^1.12.2",
+    "ramda": "^0.26.1",
     "shelljs": "^0.8.3"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^1.9.0",
-    "@typescript-eslint/parser": "^1.13.0",
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.3.4",
     "@babel/node": "^7.2.2",
@@ -32,8 +32,10 @@
     "@babel/polyfill": "^7.2.5",
     "@babel/preset-env": "^7.1.0",
     "@babel/register": "^7.0.0",
-    "eslint": "^5.9.0",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.13.0",
     "babel-eslint": "^10.0.1",
+    "eslint": "^5.9.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-babel": "^5.3.0",
