@@ -19,7 +19,7 @@ const obtainFavIcon = async(url) => {
 
   let favIcon = await page.evaluate(() => {
     const iconNode = document.querySelector('link[rel*="icon"]')
-    let icon = iconNode ? iconNode.getAttribute('href') : null
+    const icon = iconNode ? iconNode.getAttribute('href') : null
     return icon
   })
 
