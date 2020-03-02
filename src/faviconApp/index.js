@@ -8,7 +8,7 @@ import bodyParser from 'body-parser'
 
 import user from './api/routes/user'
 
-const obtainFavIcon = async(url) => {
+const obtainFavIcon = async (url) => {
   console.log('obtainFavIcon started', Date.now(), url)
   const browser = await puppeteer.launch({ headless: true })
   const page = await browser.newPage()
@@ -45,12 +45,12 @@ const obtainFavIcon = async(url) => {
   return favIcon
 }
 
-const parseIconsResults = async(urls) => {
+const parseIconsResults = async (urls) => {
   // const icons = urls.map(url => obtainFavIcon(url))
   // const resolvedIcons = await Promise.all(icons)
 
   let resolvedIcons = await urls.reduce(
-    async(promise, url) => promise.then((iconResults) => (
+    async (promise, url) => promise.then((iconResults) => (
       obtainFavIcon(url).then((icon) => [...iconResults, icon ? { url, icon } : null])
     )), Promise.resolve([]),
   )
@@ -82,7 +82,7 @@ const app = express()
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'))
 app.use(bodyParser.json())
-app.get('/urls', async(req, res) => {
+app.get('/urls', async (req, res) => {
   let urls
   if (!req.query.url && !req.query.urls) {
     urls = await readUrlsFromFile()
@@ -92,7 +92,7 @@ app.get('/urls', async(req, res) => {
   res.render('urls', await parseIconsResults(urls))
 })
 
-app.get('/api/favIcon', async(req, res) => {
+app.get('/api/favIcon', async (req, res) => {
   let urls
   if (!req.query.url && !req.query.urls) {
     urls = await readUrlsFromFile()

@@ -11,7 +11,7 @@ const waitFor = (ms, num) => new Promise((resolve) => {
 
 let results = []
 let result
-const run = async() => {
+const run = async () => {
   results = [1, 2, 3].map((num) => waitFor(50, num))
 
   const raceForResult = await Promise.race(results)

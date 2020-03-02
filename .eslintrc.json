@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "@earlorg/eslint-config/base",
+    "@earlorg/eslint-config/base-react-jsx",
+    "@earlorg/eslint-config/base-typescript",
+    "@earlorg/eslint-config/perf-react-jsx"
+  ],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx", ".json"]
+      }
+    }
+  }
+}
