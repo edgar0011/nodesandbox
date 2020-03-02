@@ -1,8 +1,14 @@
 module.exports = {
-  extends: './base.js',
-  extends: './base-typescript.js',
-
-  rules: {
-    "quotes": "off",
+  extends: [
+    './base.js',
+    './base-typescript.js',
+  ],
+  // get rid off flow then uncomment
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx", ".json"]
+      }
+    }
   }
 };

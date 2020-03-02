@@ -1,6 +1,9 @@
 
+import path from 'path'
+
 import express from 'express'
 import bodyParser from 'body-parser'
+import cors from 'cors'
 
 // import { spawn } from 'child_process'
 
@@ -8,6 +11,13 @@ const PORT = 8080
 const app = express()
 
 app.use(bodyParser.json())
+
+const corsOptions = {
+  origin: '*',
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions))
 
 app.use((req, res, next) => {
   console.log('Request:')
@@ -35,6 +45,28 @@ app.get('/error', (request, response, next) => {
   })
 })
 
+app.get('/module', (req, res) => {
+  // res.send(`
+
+  //   "use strict";
+  //   Object.defineProperty(exports, "__esModule", { value: true });
+  //   var Suppliers;
+  //   (function (Suppliers) {
+  //       Suppliers["TPM"] = "tpm";
+  //       Suppliers["GDS"] = "gds";
+  //       Suppliers["MCH"] = "mch";
+  //       Suppliers["CMS"] = "cms";
+  //   })(Suppliers = exports.Suppliers || (exports.Suppliers = {}));
+  //   alert('Hello External Module')
+
+  // `)
+
+  res.status(200)
+  res.setHeader('Content-Type', 'application/javascript')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.sendFile(path.resolve(__dirname, './configModule.js'))
+})
+
 app.get('/*', (req, res) => {
   res.json({ result: 'ok' })
 })
@@ -43,9 +75,14 @@ app.listen(PORT, () => {
   console.log('app running at 8080')
 })
 
-process.on('uncaughtException', function(err) {
+process.on('uncaughtException', (err) => {
   console.log('Uncaught Exception')
   console.error(err)
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.log('unhandledRejection')
+  throw reason // you should handle all exceptions in tests explixitly
 })
 
 // process

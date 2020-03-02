@@ -1,9 +1,10 @@
-import express from 'express'
-import puppeteer from 'puppeteer'
 import path from 'path'
-import bodyParser from 'body-parser'
 import fs from 'fs'
 import { URL } from 'url'
+
+import express from 'express'
+import puppeteer from 'puppeteer'
+import bodyParser from 'body-parser'
 
 import user from './api/routes/user'
 
@@ -48,13 +49,13 @@ const parseIconsResults = async(urls) => {
   // const icons = urls.map(url => obtainFavIcon(url))
   // const resolvedIcons = await Promise.all(icons)
 
-  let resolvedIcons = await urls.reduce(async(promise, url) => {
-    return promise.then(iconResults => {
-      return obtainFavIcon(url).then(icon => [...iconResults, icon ? { url, icon } : null])
-    })
-  }, Promise.resolve([]))
+  let resolvedIcons = await urls.reduce(
+    async(promise, url) => promise.then((iconResults) => (
+      obtainFavIcon(url).then((icon) => [...iconResults, icon ? { url, icon } : null])
+    )), Promise.resolve([]),
+  )
 
-  resolvedIcons = resolvedIcons.filter(icon => !!icon)
+  resolvedIcons = resolvedIcons.filter((icon) => !!icon)
 
   console.log('resolvedIcons')
   console.log(resolvedIcons)
@@ -66,17 +67,15 @@ const parseIconsResults = async(urls) => {
 
 parseIconsResults.DEFAULT_URL = 'https://www.facebook.com'
 
-const readUrlsFromFile = () => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path.join(__dirname, './data/urls3'), 'utf8', (error, data) => {
-      if (error) {
-        return reject(error)
-      }
-      const fileContent = data.split('\n').filter(url => !!url)
-      return resolve(fileContent)
-    })
+const readUrlsFromFile = () => new Promise((resolve, reject) => {
+  fs.readFile(path.join(__dirname, './data/urls3'), 'utf8', (error, data) => {
+    if (error) {
+      return reject(error)
+    }
+    const fileContent = data.split('\n').filter((url) => !!url)
+    return resolve(fileContent)
   })
-}
+})
 
 const PORT = 8080
 const app = express()

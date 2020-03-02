@@ -19,12 +19,11 @@ const dataSchema = {
   TextSK: '',
 }
 
-const indexMapperFactory = ({ schema, firstLine }) => Object.keys(schema).map((key) => {
-  return [key, firstLine.indexOf(key)]
-})
+const indexMapperFactory = ({ schema, firstLine }) => Object.keys(schema).map((key) => [key, firstLine.indexOf(key)])
 
 const mapLineFactory = (indexMapper) => (line) => indexMapper.reduce((agr, nameValueIndex) => {
   if (nameValueIndex[1] > -1) {
+    // eslint-disable-next-line no-param-reassign
     agr[nameValueIndex[0]] = line[nameValueIndex[1]]
   }
   return agr
